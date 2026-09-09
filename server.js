@@ -11,6 +11,8 @@ app.use(express.json());
 
 connectDB();
 
+app.use('/api/auth', require('./Authentication/authRoutes'));
+app.use('/api/users', require('./Authentication/userRoutes'));
 app.use('/api/teams', require('./Teams/teamRoutes'));
 app.use('/api/players', require('./Players/playerRoutes'));
 app.use('/api/matches', require('./Matches/matchRoutes'));

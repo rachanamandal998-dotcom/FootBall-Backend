@@ -1,11 +1,13 @@
-const express=require('express'); const router=express.Router();
+const express = require('express');
+const router = express.Router();
 router.use('/auth', require('../Authentication/authRoutes'));
+router.use('/users', require('../Authentication/userRoutes'));
 router.use('/teams', require('../Teams/teamRoutes'));
 router.use('/players', require('../Players/playerRoutes'));
 router.use('/matches', require('../Matches/matchRoutes'));
 router.use('/competitions', require('../Competitions/competitionRoutes'));
 router.use('/statistics', require('../Statistics/statsRoutes'));
 router.use('/injuries', require('../Injuries/injuryRoutes'));
-router.use('/trainings', require('../Training/trainingRoutes'));
+router.use('/training', require('../Training/trainingRoutes'));
 router.use('/news', require('../News/newsRoutes'));
-module.exports=router;
+module.exports = router;
