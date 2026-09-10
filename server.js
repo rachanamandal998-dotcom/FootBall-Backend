@@ -4,9 +4,17 @@ const cors = require('cors');
 const connectDB = require('./Database/connection');
 
 dotenv.config();
+if (!process.env.JWT_SECRET) {
+  console.error('JWT_SECRET is missing. Set it in Backend/.env');
+  process.exit(1);
+}
+
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 
 connectDB();

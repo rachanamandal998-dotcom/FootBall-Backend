@@ -1,11 +1,42 @@
 const jwt = require("jsonwebtoken");
-exports.protect = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ msg: "No token" });
+const User = require("../Database/models/User");
+
+const COOKIE_NAME = "sfc_token";
+
+function getTokenFromRequest(req) {
+  const header = req.headers.authorization;
+  if (header?.startsWith("Bearer ")) return header.slice(7).trim();
+
+  const cookieHeader = req.headers.cookie || "";
+  const match = cookieHeader
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${COOKIE_NAME}=`));
+  if (!match) return null;
+  return decodeURIComponent(match.slice(COOKIE_NAME.length + 1));
+}
+
+exports.protect = async (req, res, next) => {
+  const token = getTokenFromRequest(req);
+  if (!token) return res.status(401).json({ msg: "Authentication required" });
+
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(payload.sub || payload.id).select("-password");
+    if (!user) return res.status(401).json({ msg: "Session is no longer valid" });
+    req.user = user;
     next();
   } catch {
-    res.status(401).json({ msg: "Invalid" });
+    return res.status(401).json({ msg: "Session expired or invalid. Please log in again." });
   }
 };
+
+exports.requireAdmin = (req, res, next) => {
+  if (!req.user) return res.status(401).json({ msg: "Authentication required" });
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ msg: "Admin access required" });
+  }
+  next();
+};
+
+exports.COOKIE_NAME = COOKIE_NAME;

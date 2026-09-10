@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const { protect, requireAdmin } = require("../Authentication/authMiddleware");
 
 function filterById(id) {
   const clauses = [{ id: String(id) }];
@@ -7,8 +8,9 @@ function filterById(id) {
   return { $or: clauses };
 }
 
-function crudRouter(Model) {
+function crudRouter(Model, { protectWrites = true } = {}) {
   const router = express.Router();
+  const writeGuard = protectWrites ? [protect, requireAdmin] : [];
 
   router.get("/", async (req, res) => {
     try {
@@ -28,7 +30,7 @@ function crudRouter(Model) {
     }
   });
 
-  router.post("/", async (req, res) => {
+  router.post("/", ...writeGuard, async (req, res) => {
     try {
       const doc = await Model.create(req.body);
       res.status(201).json(doc);
@@ -37,7 +39,7 @@ function crudRouter(Model) {
     }
   });
 
-  router.put("/:id", async (req, res) => {
+  router.put("/:id", ...writeGuard, async (req, res) => {
     try {
       const doc = await Model.findOneAndUpdate(filterById(req.params.id), req.body, {
         new: true,
@@ -50,7 +52,7 @@ function crudRouter(Model) {
     }
   });
 
-  router.delete("/:id", async (req, res) => {
+  router.delete("/:id", ...writeGuard, async (req, res) => {
     try {
       const doc = await Model.findOneAndDelete(filterById(req.params.id));
       if (!doc) return res.status(404).json({ msg: "Not found" });
