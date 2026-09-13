@@ -1,12 +1,15 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const connectDB = async () => {
+  const uri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/sindhuli-fc";
   try {
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/sindhuliFC');
-    console.log('MongoDB Connected');
+    await mongoose.connect(uri);
+    console.log("MongoDB Connected");
+    return true;
   } catch (error) {
-    console.log('MongoDB NOT running - Backend still works but no data saved');
-    console.log('Tip: Install MongoDB Compass or use Atlas to save data');
+    console.log("MongoDB NOT running - start MongoDB to save and load club data");
+    console.log(error.message);
+    return false;
   }
 };
 

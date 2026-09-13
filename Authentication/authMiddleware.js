@@ -31,12 +31,26 @@ exports.protect = async (req, res, next) => {
   }
 };
 
+exports.optionalProtect = async (req, res, next) => {
+  const token = getTokenFromRequest(req);
+  if (!token) return next();
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(payload.sub || payload.id).select("-password");
+    if (user) req.user = user;
+  } catch {
+    // ignore expired tokens on public routes
+  }
+  next();
+};
+
 exports.requireAdmin = (req, res, next) => {
   if (!req.user) return res.status(401).json({ msg: "Authentication required" });
-  if (req.user.role !== "admin") {
-    return res.status(403).json({ msg: "Admin access required" });
+  if (!["admin", "super_admin", "manager"].includes(req.user.role)) {
+    return res.status(403).json({ msg: "Manager access required" });
   }
   next();
 };
 
 exports.COOKIE_NAME = COOKIE_NAME;
+exports.getTokenFromRequest = getTokenFromRequest;

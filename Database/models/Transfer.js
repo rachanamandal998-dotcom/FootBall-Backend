@@ -1,20 +1,21 @@
 const mongoose = require("mongoose");
 
 module.exports = mongoose.model(
-  "Injury",
+  "Transfer",
   new mongoose.Schema(
     {
       id: { type: String, unique: true, sparse: true },
       playerId: { type: String, required: true },
-      type: { type: String, required: true },
-      date: String,
-      expectedReturn: String,
-      status: {
+      previousTeamId: String,
+      newTeamId: String,
+      type: {
         type: String,
-        enum: ["Injured", "Recovering", "Fit", "Returned"],
-        default: "Injured",
+        enum: ["Permanent", "Loan", "Free Transfer", "Loan Return"],
+        default: "Permanent",
       },
-      medicalNotes: { type: String, default: "" },
+      date: String,
+      fee: String,
+      contractExpiry: String,
     },
     { timestamps: true },
   ),
