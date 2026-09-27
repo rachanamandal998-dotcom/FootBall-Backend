@@ -1,5 +1,3 @@
-const mongoose = require("mongoose");
-
 function ageFromDOB(iso) {
   if (!iso) return null;
   const dob = new Date(iso);
@@ -24,9 +22,7 @@ function withIds(docs) {
 }
 
 function filterById(id) {
-  const clauses = [{ id: String(id) }];
-  if (mongoose.isValidObjectId(id)) clauses.push({ _id: id });
-  return { $or: clauses };
+  return { $or: [{ id: String(id) }, { _id: String(id) }] };
 }
 
 function uid(prefix = "") {

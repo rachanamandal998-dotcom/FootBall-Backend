@@ -34,7 +34,11 @@ router.get("/", async (req, res) => {
       matches: matches.map(withId),
       competitions: competitions.map(withId),
       news: news.map(withId),
-      reports: reports.map(withId),
+      reports: reports.map((report) => {
+        const safe = withId(report);
+        delete safe.managerNotes;
+        return safe;
+      }),
     });
   } catch (e) {
     res.status(500).json({ msg: e.message });

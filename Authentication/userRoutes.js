@@ -1,6 +1,5 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const mongoose = require("mongoose");
 const User = require("../Database/models/User");
 const { protect } = require("./authMiddleware");
 const { requireRoles, STAFF_ROLES } = require("./roles");
@@ -9,8 +8,9 @@ const { EMAIL_RE } = require("../Database/ids");
 const router = express.Router();
 
 async function findUserByParam(id) {
-  if (mongoose.isValidObjectId(id)) return User.findById(id).select("+password");
-  return User.findOne({ email: id }).select("+password");
+  const byId = await User.findById(id).select("+password");
+  if (byId) return byId;
+  return User.findOne({ email: String(id).toLowerCase() }).select("+password");
 }
 
 router.use(protect, requireRoles(["super_admin", "admin"]));
@@ -51,7 +51,7 @@ router.post("/", async (req, res) => {
     if (error.code === 11000) {
       return res.status(409).json({ msg: "An account with this email already exists" });
     }
-    res.status(400).json({ msg: error.message });
+    res.status(error.status || 400).json({ msg: error.expose ? error.message : "Could not create this account." });
   }
 });
 
@@ -92,7 +92,7 @@ router.put("/:id", async (req, res) => {
     if (error.code === 11000) {
       return res.status(409).json({ msg: "An account with this email already exists" });
     }
-    res.status(400).json({ msg: error.message });
+    res.status(error.status || 400).json({ msg: error.expose ? error.message : "Could not update this account." });
   }
 });
 
@@ -114,7 +114,7 @@ router.delete("/:id", async (req, res) => {
     await user.deleteOne();
     res.json({ msg: "deleted" });
   } catch (error) {
-    res.status(400).json({ msg: error.message });
+    res.status(error.status || 400).json({ msg: error.expose ? error.message : "Could not delete this account." });
   }
 });
 

@@ -193,7 +193,7 @@ async function logActivity(message, type = "update", actor = "Manager") {
 
 async function standingsFor(compId) {
   const competition = await Competition.findOne({
-    $or: [{ id: String(compId) }, ...(require("mongoose").isValidObjectId(compId) ? [{ _id: compId }] : [])],
+    $or: [{ id: String(compId) }, { _id: String(compId) }],
   });
   if (!competition) return [];
   const matches = await Match.find({ compId: competition.id || String(competition._id) });

@@ -1,15 +1,12 @@
-const mongoose = require("mongoose");
+const { defineModel } = require("../repository");
 
-module.exports = mongoose.model(
-  "Stadium",
-  new mongoose.Schema(
-    {
-      id: { type: String, unique: true, sparse: true },
-      name: { type: String, required: true },
-      location: String,
-      capacity: Number,
-      image: String,
-    },
-    { timestamps: true },
-  ),
-);
+module.exports = defineModel({
+  table: "stadiums",
+  idPrefix: "sd",
+  columns: [
+    { field: "name", column: "name", type: "string" },
+    { field: "location", column: "location", type: "string" },
+    { field: "capacity", column: "capacity", type: "number" },
+    { field: "image", column: "image", type: "string" },
+  ],
+});

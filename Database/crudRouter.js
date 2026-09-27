@@ -3,6 +3,12 @@ const { protect } = require("../Authentication/authMiddleware");
 const { requireRoles } = require("../Authentication/roles");
 const { filterById, withId, withIds, uid } = require("./ids");
 
+function sendError(res, error, fallbackStatus) {
+  if (!error.expose) console.error(error);
+  const status = error.status || fallbackStatus;
+  res.status(status).json({ msg: error.expose ? error.message : "Could not complete that request." });
+}
+
 function resourceRouter(Model, options = {}) {
   const {
     writeRoles = ["super_admin", "admin", "manager"],
@@ -34,7 +40,7 @@ function resourceRouter(Model, options = {}) {
       const docs = await Model.find(q).sort({ createdAt: -1 });
       res.json(docs.map((d) => present(d, req)));
     } catch (e) {
-      res.status(500).json({ msg: e.message });
+      sendError(res, e, 500);
     }
   });
 
@@ -47,7 +53,7 @@ function resourceRouter(Model, options = {}) {
       if (!doc) return res.status(404).json({ msg: "Not found" });
       res.json(present(doc, req));
     } catch (e) {
-      res.status(500).json({ msg: e.message });
+      sendError(res, e, 500);
     }
   });
 
@@ -57,14 +63,14 @@ function resourceRouter(Model, options = {}) {
       const payload = { ...req.body };
       if (!payload.id && assignIdPrefix) payload.id = uid(assignIdPrefix);
       if (validate) {
-        const err = validate(payload, "create");
+        const err = await validate(payload, "create");
         if (err) return res.status(400).json({ msg: err });
       }
       const doc = await Model.create(payload);
       if (afterWrite) await afterWrite("create", doc, req);
       res.status(201).json(withId(doc));
     } catch (e) {
-      res.status(400).json({ msg: e.message });
+      sendError(res, e, 400);
     }
   });
 
@@ -73,7 +79,7 @@ function resourceRouter(Model, options = {}) {
       const payload = { ...req.body };
       delete payload._id;
       if (validate) {
-        const err = validate(payload, "update");
+        const err = await validate(payload, "update");
         if (err) return res.status(400).json({ msg: err });
       }
       const doc = await Model.findOneAndUpdate(filterById(req.params.id), payload, {
@@ -84,7 +90,7 @@ function resourceRouter(Model, options = {}) {
       if (afterWrite) await afterWrite("update", doc, req);
       res.json(withId(doc));
     } catch (e) {
-      res.status(400).json({ msg: e.message });
+      sendError(res, e, 400);
     }
   });
 
@@ -95,7 +101,7 @@ function resourceRouter(Model, options = {}) {
       if (afterWrite) await afterWrite("delete", doc, req);
       res.json({ msg: "deleted" });
     } catch (e) {
-      res.status(400).json({ msg: e.message });
+      sendError(res, e, 400);
     }
   });
 

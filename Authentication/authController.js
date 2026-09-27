@@ -1,17 +1,16 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const mongoose = require("mongoose");
 const User = require("../Database/models/User");
+const { isDbReady } = require("../Database/connection");
 const { COOKIE_NAME } = require("./authMiddleware");
 const { STAFF_ROLES } = require("./roles");
-const { EMAIL_RE } = require("../Database/ids");
 
 const TOKEN_DAYS = 7;
 
 function dbReady(res) {
-  if (mongoose.connection.readyState !== 1) {
+  if (!isDbReady()) {
     res.status(503).json({
-      msg: "Database is not connected. Start MongoDB and try again.",
+      msg: "Database is not connected. Check MySQL and try again.",
     });
     return false;
   }

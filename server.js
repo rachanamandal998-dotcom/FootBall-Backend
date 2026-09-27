@@ -26,14 +26,18 @@ app.use(express.json({ limit: "2mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(optionalProtect);
 
-connectDB().then(async () => {
-  try {
-    const result = await seedIfEmpty();
-    if (result?.seeded) console.log("Demo football data seeded.");
-  } catch (err) {
-    console.error("Seed skipped:", err.message);
-  }
-});
+connectDB()
+  .then(async () => {
+    try {
+      const result = await seedIfEmpty();
+      if (result?.seeded) console.log("Demo football data seeded.");
+    } catch (err) {
+      console.error("Seed skipped:", err.message);
+    }
+  })
+  .catch((err) => {
+    console.error("MySQL connection failed:", err.message);
+  });
 
 app.use("/api/auth", require("./Authentication/authRoutes"));
 app.use("/api/users", require("./Authentication/userRoutes"));

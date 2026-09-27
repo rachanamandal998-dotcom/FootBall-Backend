@@ -1,18 +1,18 @@
-const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
 const path = require("path");
-const mongoose = require("mongoose");
 
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
+const connectDB = require("./connection");
+const { closeDB } = require("./db");
 const { ensureAdmin } = require("./seed");
 
 async function seedAdmin() {
-  if (!process.env.MONGO_URI) throw new Error("MONGO_URI is required");
-  await mongoose.connect(process.env.MONGO_URI);
+  if (!process.env.DB_NAME) throw new Error("DB_NAME is required");
+  await connectDB();
   const admin = await ensureAdmin();
   console.log(`Manager ready: ${admin.email}`);
-  await mongoose.disconnect();
+  await closeDB();
 }
 
 seedAdmin().catch((error) => {

@@ -1,23 +1,17 @@
-const mongoose = require("mongoose");
+const { defineModel } = require("../repository");
 
-module.exports = mongoose.model(
-  "News",
-  new mongoose.Schema(
-    {
-      id: { type: String, unique: true, sparse: true },
-      title: { type: String, required: true, trim: true },
-      image: String,
-      content: { type: String, required: true },
-      excerpt: String,
-      author: { type: String, default: "Sports Desk" },
-      category: {
-        type: String,
-        enum: ["Match", "Team", "Player", "Transfer", "Competition", "Community"],
-        default: "Community",
-      },
-      date: String,
-      status: { type: String, enum: ["Draft", "Published", "Unpublished"], default: "Published" },
-    },
-    { timestamps: true },
-  ),
-);
+module.exports = defineModel({
+  table: "news",
+  idPrefix: "n",
+  defaults: { author: "Sports Desk", category: "Community", status: "Published" },
+  columns: [
+    { field: "title", column: "title", type: "string" },
+    { field: "image", column: "image", type: "string" },
+    { field: "content", column: "content", type: "string" },
+    { field: "excerpt", column: "excerpt", type: "string" },
+    { field: "author", column: "author", type: "string" },
+    { field: "category", column: "category", type: "string" },
+    { field: "date", column: "news_date", type: "string" },
+    { field: "status", column: "status", type: "string" },
+  ],
+});

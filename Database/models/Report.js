@@ -1,37 +1,23 @@
-const mongoose = require("mongoose");
+const { defineModel } = require("../repository");
 
-module.exports = mongoose.model(
-  "Report",
-  new mongoose.Schema(
-    {
-      id: { type: String, unique: true, sparse: true },
-      name: { type: String, required: true, trim: true },
-      email: { type: String, required: true, trim: true, lowercase: true },
-      phone: String,
-      subject: { type: String, required: true, trim: true },
-      message: { type: String, required: true, trim: true },
-      category: {
-        type: String,
-        enum: [
-          "General Contact",
-          "Match Report",
-          "Player Report",
-          "Team Report",
-          "Website Issue",
-          "Correction Request",
-          "Community Feedback",
-          "Other",
-        ],
-        default: "General Contact",
-      },
-      status: {
-        type: String,
-        enum: ["New", "In Review", "Resolved", "Archived"],
-        default: "New",
-      },
-      managerNotes: { type: String, default: "" },
-      reviewedAt: Date,
-    },
-    { timestamps: true },
-  ),
-);
+module.exports = defineModel({
+  table: "reports",
+  autoId: true,
+  defaults: {
+    category: "General Contact",
+    status: "New",
+    managerNotes: "",
+    phone: null,
+  },
+  columns: [
+    { field: "name", column: "name", type: "string" },
+    { field: "email", column: "email", type: "string" },
+    { field: "phone", column: "phone", type: "string", emptyNull: true },
+    { field: "subject", column: "subject", type: "string" },
+    { field: "message", column: "message", type: "string" },
+    { field: "category", column: "category", type: "string" },
+    { field: "status", column: "status", type: "string" },
+    { field: "managerNotes", column: "manager_notes", type: "string" },
+    { field: "reviewedAt", column: "reviewed_at", type: "date" },
+  ],
+});

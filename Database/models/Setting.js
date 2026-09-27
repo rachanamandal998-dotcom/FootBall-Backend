@@ -1,15 +1,20 @@
-const mongoose = require("mongoose");
+const { defineModel } = require("../repository");
 
-module.exports = mongoose.model(
-  "Setting",
-  new mongoose.Schema(
-    {
-      key: { type: String, unique: true, default: "site" },
-      clubName: { type: String, default: "Sindhuli Football Clubhouse" },
-      tagline: { type: String, default: "Manage. Play. Connect." },
-      heroText: { type: String, default: "Your home for football in Sindhuli." },
-      about: String,
-    },
-    { timestamps: true },
-  ),
-);
+module.exports = defineModel({
+  table: "settings",
+  idFrom: "key",
+  defaults: {
+    key: "site",
+    clubName: "Sindhuli Football Clubhouse",
+    tagline: "Manage. Play. Connect.",
+    heroText: "Your home for football in Sindhuli.",
+    about: "",
+  },
+  columns: [
+    { field: "key", column: "setting_key", type: "string" },
+    { field: "clubName", column: "club_name", type: "string" },
+    { field: "tagline", column: "tagline", type: "string" },
+    { field: "heroText", column: "hero_text", type: "string" },
+    { field: "about", column: "about_text", type: "string" },
+  ],
+});

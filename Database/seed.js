@@ -427,9 +427,11 @@ async function ensureAdmin() {
 
 async function seedFootball(force = false) {
   if (!force && (await Team.countDocuments()) > 0) return { seeded: false };
-  const collections = [Team, Player, Match, Competition, News, Injury, Training, Report, Staff, Transfer, Contract, Stadium, Activity];
   if (force) {
-    await Promise.all(collections.map((M) => M.deleteMany({})));
+    const ordered = [Match, Training, Injury, Transfer, Contract, Staff, Player, Competition, Team, Stadium, News, Report, Activity];
+    for (const model of ordered) {
+      await model.deleteMany({});
+    }
   }
   await Stadium.insertMany(demo.stadiums);
   await Team.insertMany(demo.teams);

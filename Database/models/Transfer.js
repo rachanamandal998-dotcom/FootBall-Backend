@@ -1,22 +1,16 @@
-const mongoose = require("mongoose");
+const { defineModel } = require("../repository");
 
-module.exports = mongoose.model(
-  "Transfer",
-  new mongoose.Schema(
-    {
-      id: { type: String, unique: true, sparse: true },
-      playerId: { type: String, required: true },
-      previousTeamId: String,
-      newTeamId: String,
-      type: {
-        type: String,
-        enum: ["Permanent", "Loan", "Free Transfer", "Loan Return"],
-        default: "Permanent",
-      },
-      date: String,
-      fee: String,
-      contractExpiry: String,
-    },
-    { timestamps: true },
-  ),
-);
+module.exports = defineModel({
+  table: "transfers",
+  idPrefix: "tf",
+  defaults: { type: "Permanent" },
+  columns: [
+    { field: "playerId", column: "player_id", type: "string", fk: true },
+    { field: "previousTeamId", column: "previous_team_id", type: "string", fk: true },
+    { field: "newTeamId", column: "new_team_id", type: "string", fk: true },
+    { field: "type", column: "type", type: "string" },
+    { field: "date", column: "transfer_date", type: "string" },
+    { field: "fee", column: "fee", type: "string" },
+    { field: "contractExpiry", column: "contract_expiry", type: "string" },
+  ],
+});

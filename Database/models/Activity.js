@@ -1,13 +1,11 @@
-const mongoose = require("mongoose");
+const { defineModel } = require("../repository");
 
-module.exports = mongoose.model(
-  "Activity",
-  new mongoose.Schema(
-    {
-      message: String,
-      type: String,
-      actor: String,
-    },
-    { timestamps: true },
-  ),
-);
+module.exports = defineModel({
+  table: "activities",
+  autoId: true,
+  columns: [
+    { field: "message", column: "message", type: "string" },
+    { field: "type", column: "type", type: "string" },
+    { field: "actor", column: "actor", type: "string" },
+  ],
+});

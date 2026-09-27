@@ -1,32 +1,17 @@
-const mongoose = require("mongoose");
+const { defineModel } = require("../repository");
 
-module.exports = mongoose.model(
-  "Staff",
-  new mongoose.Schema(
-    {
-      id: { type: String, unique: true, sparse: true },
-      name: { type: String, required: true },
-      photo: String,
-      role: {
-        type: String,
-        enum: [
-          "Manager",
-          "Coach",
-          "Assistant Coach",
-          "Goalkeeping Coach",
-          "Fitness Coach",
-          "Medical Staff",
-          "Physiotherapist",
-          "Team Administrator",
-        ],
-        default: "Coach",
-      },
-      nationality: { type: String, default: "Nepal" },
-      email: String,
-      phone: String,
-      teamId: String,
-      joinDate: String,
-    },
-    { timestamps: true },
-  ),
-);
+module.exports = defineModel({
+  table: "staff",
+  idPrefix: "st",
+  defaults: { role: "Coach", nationality: "Nepal" },
+  columns: [
+    { field: "name", column: "name", type: "string" },
+    { field: "photo", column: "photo", type: "string" },
+    { field: "role", column: "role", type: "string" },
+    { field: "nationality", column: "nationality", type: "string" },
+    { field: "email", column: "email", type: "string" },
+    { field: "phone", column: "phone", type: "string" },
+    { field: "teamId", column: "team_id", type: "string", fk: true },
+    { field: "joinDate", column: "join_date", type: "string" },
+  ],
+});

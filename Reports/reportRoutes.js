@@ -7,6 +7,18 @@ const { logActivity } = require("../Database/engines/footballEngine");
 
 const router = express.Router();
 
+const CATEGORIES = [
+  "General Contact",
+  "Match Report",
+  "Player Report",
+  "Team Report",
+  "Website Issue",
+  "Correction Request",
+  "Community Feedback",
+  "Other",
+];
+const STATUSES = ["New", "In Review", "Resolved", "Archived"];
+
 router.post("/", async (req, res) => {
   try {
     const name = String(req.body.name || "").trim();
@@ -16,10 +28,12 @@ router.post("/", async (req, res) => {
     const category = req.body.category || "General Contact";
     const phone = String(req.body.phone || "").trim();
 
-    if (name.length < 2) return res.status(400).json({ msg: "Please enter your name." });
-    if (!EMAIL_RE.test(email)) return res.status(400).json({ msg: "Please enter a valid email address." });
-    if (!subject) return res.status(400).json({ msg: "Please enter a subject." });
-    if (!message) return res.status(400).json({ msg: "Message cannot be empty." });
+    if (name.length < 2 || name.length > 255) return res.status(400).json({ msg: "Please enter your name." });
+    if (!EMAIL_RE.test(email) || email.length > 255) return res.status(400).json({ msg: "Please enter a valid email address." });
+    if (phone.length > 50) return res.status(400).json({ msg: "Phone number is too long." });
+    if (!CATEGORIES.includes(category)) return res.status(400).json({ msg: "Please choose a valid category." });
+    if (!subject || subject.length > 255) return res.status(400).json({ msg: "Please enter a subject." });
+    if (!message || message.length > 5000) return res.status(400).json({ msg: "Message cannot be empty." });
 
     const doc = await Report.create({
       id: uid("r"),
@@ -37,7 +51,8 @@ router.post("/", async (req, res) => {
       id: withId(doc).id,
     });
   } catch (e) {
-    res.status(400).json({ msg: e.message });
+    if (!e.expose) console.error(e);
+    res.status(400).json({ msg: e.expose ? e.message : "Could not send your message." });
   }
 });
 
@@ -49,7 +64,7 @@ router.get("/", async (req, res) => {
     if (req.query.status) q.status = req.query.status;
     if (req.query.category) q.category = req.query.category;
     if (req.query.search) {
-      const s = req.query.search;
+      const s = String(req.query.search).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       q.$or = [
         { name: new RegExp(s, "i") },
         { email: new RegExp(s, "i") },
@@ -60,21 +75,34 @@ router.get("/", async (req, res) => {
     const docs = await Report.find(q).sort({ createdAt: -1 });
     res.json(docs.map(withId));
   } catch (e) {
-    res.status(500).json({ msg: e.message });
+    if (!e.expose) console.error(e);
+    res.status(500).json({ msg: e.expose ? e.message : "Could not load reports." });
   }
 });
 
 router.get("/:id", async (req, res) => {
-  const doc = await Report.findOne(filterById(req.params.id));
-  if (!doc) return res.status(404).json({ msg: "Not found" });
-  res.json(withId(doc));
+  try {
+    const doc = await Report.findOne(filterById(req.params.id));
+    if (!doc) return res.status(404).json({ msg: "Not found" });
+    res.json(withId(doc));
+  } catch (e) {
+    if (!e.expose) console.error(e);
+    res.status(500).json({ msg: e.expose ? e.message : "Could not load this report." });
+  }
 });
 
 router.put("/:id", async (req, res) => {
   try {
     const payload = { ...req.body };
     delete payload._id;
-    if (payload.status && payload.status !== "New") payload.reviewedAt = new Date();
+    delete payload.id;
+    if (payload.status && !STATUSES.includes(payload.status)) {
+      return res.status(400).json({ msg: "Please choose a valid report status." });
+    }
+    if (payload.managerNotes && String(payload.managerNotes).length > 5000) {
+      return res.status(400).json({ msg: "Manager notes are too long." });
+    }
+    if (payload.status && payload.status !== "New") payload.reviewedAt = payload.reviewedAt || new Date();
     const doc = await Report.findOneAndUpdate(filterById(req.params.id), payload, {
       new: true,
       runValidators: true,
@@ -83,14 +111,20 @@ router.put("/:id", async (req, res) => {
     await logActivity(`Report marked as ${doc.status}`, "report");
     res.json(withId(doc));
   } catch (e) {
-    res.status(400).json({ msg: e.message });
+    if (!e.expose) console.error(e);
+    res.status(400).json({ msg: e.expose ? e.message : "Could not update this report." });
   }
 });
 
 router.delete("/:id", async (req, res) => {
-  const doc = await Report.findOneAndDelete(filterById(req.params.id));
-  if (!doc) return res.status(404).json({ msg: "Not found" });
-  res.json({ msg: "deleted" });
+  try {
+    const doc = await Report.findOneAndDelete(filterById(req.params.id));
+    if (!doc) return res.status(404).json({ msg: "Not found" });
+    res.json({ msg: "deleted" });
+  } catch (e) {
+    if (!e.expose) console.error(e);
+    res.status(400).json({ msg: e.expose ? e.message : "Could not delete this report." });
+  }
 });
 
 module.exports = router;

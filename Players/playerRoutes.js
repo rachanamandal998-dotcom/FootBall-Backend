@@ -1,13 +1,15 @@
 const Player = require("../Database/models/Player");
 const resourceRouter = require("../Database/crudRouter");
+const { rowExists } = require("../Database/repository");
 const { logActivity } = require("../Database/engines/footballEngine");
 const { PERMS } = require("../Authentication/roles");
 
-function validate(payload) {
+async function validate(payload) {
   if (!payload.firstName || String(payload.firstName).trim().length < 2) {
     return "Full name is required.";
   }
   if (!payload.teamId) return "Player must belong to a team.";
+  if (!(await rowExists("teams", payload.teamId))) return "Player must belong to an existing team.";
   if (!payload.position) return "Position is required.";
   if (payload.dob) {
     const d = new Date(payload.dob);

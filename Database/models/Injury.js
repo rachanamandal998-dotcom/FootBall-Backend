@@ -1,21 +1,15 @@
-const mongoose = require("mongoose");
+const { defineModel } = require("../repository");
 
-module.exports = mongoose.model(
-  "Injury",
-  new mongoose.Schema(
-    {
-      id: { type: String, unique: true, sparse: true },
-      playerId: { type: String, required: true },
-      type: { type: String, required: true },
-      date: String,
-      expectedReturn: String,
-      status: {
-        type: String,
-        enum: ["Injured", "Recovering", "Fit", "Returned"],
-        default: "Injured",
-      },
-      medicalNotes: { type: String, default: "" },
-    },
-    { timestamps: true },
-  ),
-);
+module.exports = defineModel({
+  table: "injuries",
+  idPrefix: "inj",
+  defaults: { status: "Injured", medicalNotes: "" },
+  columns: [
+    { field: "playerId", column: "player_id", type: "string", fk: true },
+    { field: "type", column: "type", type: "string" },
+    { field: "date", column: "injury_date", type: "string" },
+    { field: "expectedReturn", column: "expected_return", type: "string" },
+    { field: "status", column: "status", type: "string" },
+    { field: "medicalNotes", column: "medical_notes", type: "string" },
+  ],
+});
